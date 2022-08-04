@@ -14,6 +14,8 @@ public class EntityAnimation
   int bottomBound;
   int leftBound;
   int rightBound;
+  int height;
+  int width; 
 
   public EntityAnimation(int nx, int ny, BufferedImage[] spriteSheet)
   {
@@ -51,6 +53,13 @@ public class EntityAnimation
   {
     sprite.currentlyPlayingAnimation = null;
   }
+  public boolean intersects(Collisable other)
+  {
+    return x + width > other.x &&
+           y + height > other.y &&
+           x < other.x + other.width &&
+           y < other.y + other.height;
+ }
   
   // Trigger an animation sequence specified by the entered array
   // (see AnimatedSprite.java for the format of this array)
