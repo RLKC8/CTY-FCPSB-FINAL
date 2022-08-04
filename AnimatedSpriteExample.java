@@ -10,6 +10,7 @@ import java.io.File;
 import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener; 
+import java.util.ArrayList;
 
 public class AnimatedSpriteExample extends JPanel implements KeyListener
 {
@@ -23,14 +24,23 @@ public class AnimatedSpriteExample extends JPanel implements KeyListener
   public static final int MSPF = 1000/FPS;
   int nx;
   int ny;
-
+  int stairBounds;
+  BufferedImage[] images = new BufferedImage[14];
+  
   BufferedImage background;
+  
+  BufferedImage background1;
 
-  EntityAnimation entity;
+  EntityAnimation player;
+  
+  BufferedImage table;
+  
+  ArrayList<Collisable>obstacles = new ArrayList<Collisable>();
+  
+  
 
   public AnimatedSpriteExample()
   {
-    BufferedImage[] images = new BufferedImage[13];
     images[0] = readImage("Sprite Images/Left1.gif");
     images[1] = readImage("Sprite Images/Left2.gif");
     images[2] = readImage("Sprite Images/Left4.gif");
@@ -47,17 +57,24 @@ public class AnimatedSpriteExample extends JPanel implements KeyListener
     images[10] = readImage("Sprite Images/Backward2.gif");
     images[11] = readImage("Sprite Images/Backward4.gif");
     
-    background = readImage("Sprite Images/BasementBackground(1).gif");
+    table = readImage("Sprite Images/Table(1).gif");
+    
+    background1 = readImage("Sprite Images/BasementBackground(1).gif");
     
     nx = 300;
     ny = 300;
-    entity = new EntityAnimation(-300, 90, images);
-    entity.topBound = -270;
-    entity.bottomBound = 110;
-    entity.leftBound = -315;
-    entity.rightBound = 130;
+    player = new EntityAnimation(-300, 90, images);
+    player.topBound = -270;
+    player.bottomBound = 110;
+    player.leftBound = -315;
+    player.rightBound = 130;
+    background = background1;
       addKeyListener(this);
       setFocusable(true);
+     player.height = images[0].getHeight();
+     player.width = images[0].getWidth();
+     obstacles.add(new Collisable(-300, -100, table));  
+     obstacles.get(0).height -= 60;
     
   }
   
@@ -70,7 +87,7 @@ public class AnimatedSpriteExample extends JPanel implements KeyListener
  
     while(true)
     {
-    if(!(entity.middleAnimation())) 
+    if(!(player.middleAnimation())) 
     {
        if(rightPressed)
       {
@@ -93,30 +110,51 @@ public class AnimatedSpriteExample extends JPanel implements KeyListener
     }
     if(rightPressed)
       {
-        entity.moveX(maxSpeed);
-        if(entity.x > entity.rightBound) {
-        entity.moveX(-maxSpeed);
+        player.moveX(maxSpeed);
+        if(player.x > player.rightBound) {
+        player.moveX(-maxSpeed);
         }
       }
       else if(leftPressed)
       {
-        entity.moveX(-maxSpeed);
-        if(entity.x < entity.leftBound) {
-        entity.moveX(maxSpeed);
+        player.moveX(-maxSpeed);
+        if(player.x < player.leftBound) {
+        player.moveX(maxSpeed);
+        }
+         if(background == background1)
+        {
+          if(player.intersects(obstacles.get(0)))
+          {
+            player.moveX(maxSpeed);
+          }
         }
       }
       else if(upPressed)
       {
-        entity.moveY(-maxSpeed);
-        if(entity.y < entity.topBound) {
-        entity.moveY(maxSpeed);
+        player.moveY(-maxSpeed);
+        if(player.y < player.topBound) {
+        player.moveY(maxSpeed);
+        }
+        if(background == background1)
+        {
+          if(player.intersects(obstacles.get(0)))
+          {
+            player.moveY(maxSpeed);
+          }
         }
       }
       else if(downPressed)
       {
-        entity.moveY(maxSpeed);
-        if(entity.y > entity.bottomBound) {
-        entity.moveY(-maxSpeed);
+        player.moveY(maxSpeed);
+        if(player.y > player.bottomBound) {
+        player.moveY(-maxSpeed);
+        }
+         if(background == background1)
+        {
+          if(player.intersects(obstacles.get(0)))
+          {
+            player.moveY(-maxSpeed);
+          }
         }
       }
 
@@ -124,13 +162,13 @@ public class AnimatedSpriteExample extends JPanel implements KeyListener
     {
       if(!(rightPressed || leftPressed || upPressed || downPressed))
       {
-        entity.clearAnimation();
+        player.clearAnimation();
       } 
     } */
       
 
       // change game state
-      entity.step();
+      player.step();
       
       // wait some time
       curTime = System.currentTimeMillis();
@@ -156,37 +194,41 @@ public class AnimatedSpriteExample extends JPanel implements KeyListener
     super.paintComponent(g);
     g.setColor(Color.BLACK);
     g.fillRect(0,0,1800,1800);
-    g.drawImage(background, -entity.x,-entity.y, null);
-    entity.drawTo(g,nx,ny);
+    g.drawImage(background, -player.x,-player.y, null);
+    for(int i = 0; i < obstacles.size();  i++)
+    {
+     obstacles.get(i).drawTo(g, -player.x + nx, -player.y + ny); //-315,-15
+    }
+    player.drawTo(g,nx,ny);
     g.setColor(Color.WHITE);
-    g.drawString(entity.x +", "+ entity.y,1030, 20);
-    
+    g.drawString(player.x +", "+ player.y,1030, 20);
+
   }
   
   public void triggerLeftWalk()
   {
     if(foot1 == true) {
-    entity.startAnimationSequence(new int[][]{
+    player.startAnimationSequence(new int[][]{
         {1,7},
         {0,7},
      }
    );
    }
      else{
-     entity.startAnimationSequence(new int[][]{
+     player.startAnimationSequence(new int[][]{
         {2,7},
         {0,7},
        }
     );
     }
     foot1 = !foot1;
-    entity.setIdleFrame(0);
+    player.setIdleFrame(0);
   }
   public void triggerRightWalk()
   {
     if(foot1 == true) 
     {
-    entity.startAnimationSequence(new int[][]{
+    player.startAnimationSequence(new int[][]{
         {4,7},
         {3,7},
       }
@@ -194,20 +236,20 @@ public class AnimatedSpriteExample extends JPanel implements KeyListener
   }
     else
     {
-    entity.startAnimationSequence(new int[][]{
+    player.startAnimationSequence(new int[][]{
         {5,7},
         {3,7},
     }
    ); 
     }
     foot1 = !foot1;
-    entity.setIdleFrame(3);
+    player.setIdleFrame(3);
   }
   public void triggerForwardWalk()
   {
   if(foot1 == true) 
   {
-    entity.startAnimationSequence(new int[][]{
+    player.startAnimationSequence(new int[][]{
         {7,7},
         {6,7},
       }
@@ -215,20 +257,20 @@ public class AnimatedSpriteExample extends JPanel implements KeyListener
   }
   else
   {
-  entity.startAnimationSequence(new int[][] {
+  player.startAnimationSequence(new int[][] {
    {8,7},
    {6,7},
   }
   );
   }
     foot1 = !foot1;
-    entity.setIdleFrame(6);
+    player.setIdleFrame(6);
   }
   public void triggerBackwardWalk()
   {
   if(foot1 == true)
   {
-    entity.startAnimationSequence(new int[][]{
+    player.startAnimationSequence(new int[][]{
         {10,7},
         {9,7},
         
@@ -237,14 +279,14 @@ public class AnimatedSpriteExample extends JPanel implements KeyListener
   }
   else
   {
-   entity.startAnimationSequence(new int[][]{
+   player.startAnimationSequence(new int[][]{
         {11,7},
         {9,7},
      }
    );
   }
     foot1 = !foot1;
-    entity.setIdleFrame(9);
+    player.setIdleFrame(9);
   }
     public static BufferedImage readImage(String infile)
   {
