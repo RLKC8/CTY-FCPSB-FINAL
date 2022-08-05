@@ -11,6 +11,7 @@ import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener; 
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class AnimatedSpriteExample extends JPanel implements KeyListener
 {
@@ -24,20 +25,27 @@ public class AnimatedSpriteExample extends JPanel implements KeyListener
   public static final int MSPF = 1000/FPS;
   int nx;
   int ny;
-  int stairBounds;
-  BufferedImage[] images = new BufferedImage[14];
+  BufferedImage[] images = new BufferedImage[12];
   
   BufferedImage background;
   
   BufferedImage background1;
+  
+  BufferedImage background2;
 
   EntityAnimation player;
   
   BufferedImage table;
   
+  BufferedImage trapdoorOpen;
+  int area;
+  public static final Color Floor = new Color(127, 67, 3);
+  
   ArrayList<Collisable>obstacles = new ArrayList<Collisable>();
   
+  Collisable stairs = new Collisable(-315,-250, 20,20);
   
+  Collisable stairs2 = new Collisable(-225,-240, 50, 15);
 
   public AnimatedSpriteExample()
   {
@@ -61,23 +69,57 @@ public class AnimatedSpriteExample extends JPanel implements KeyListener
     
     background1 = readImage("Sprite Images/BasementBackground(1).gif");
     
+    trapdoorOpen = readImage("Sprite Images/TrapdoorOpen.gif");
+    
     nx = 300;
     ny = 300;
     player = new EntityAnimation(-300, 90, images);
-    player.topBound = -270;
-    player.bottomBound = 110;
-    player.leftBound = -315;
-    player.rightBound = 130;
     background = background1;
       addKeyListener(this);
       setFocusable(true);
      player.height = images[0].getHeight();
      player.width = images[0].getWidth();
-     obstacles.add(new Collisable(-300, -100, table));  
-     obstacles.get(0).height -= 60;
-    
+     transition(0);
+     
   }
   
+  public void transition(int toArea)
+  {
+    obstacles = new ArrayList<Collisable>();
+    area = toArea;
+    if(area == 0)
+    {
+      player.x += 50;
+      background = background1;
+      obstacles.add(new Collisable(-300, -100, table));  
+      obstacles.get(0).height -= 60;
+      obstacles.get(0).width -=10;
+      
+      player.topBound = -270;
+      player.bottomBound = 110;
+      player.leftBound = -315;
+      player.rightBound = 130;
+      
+      //Stairiers
+      obstacles.add(new Collisable(-315, -150, 30 ,25)); //x, y, width, height
+      obstacles.add(new Collisable(-270, -130, 30, 15));
+      obstacles.add(new Collisable(-230, -110, 30, 5));
+      obstacles.add(new Collisable(-200, -90, 30, 1)); 
+    }
+    if(area == 1)
+    {
+      player.x -= 50; 
+      background = trapdoorOpen;
+      player.topBound = -900;
+      player.rightBound = -25;
+      player.leftBound = -860;
+      player.bottomBound = -50;
+      // Stair boundaries
+      obstacles.add(new Collisable(-230, -260, 50, 0));
+     
+      
+    }
+  }
   /* Update the image and redraw the screen */
   public void mainLoop()
   {
@@ -114,6 +156,13 @@ public class AnimatedSpriteExample extends JPanel implements KeyListener
         if(player.x > player.rightBound) {
         player.moveX(-maxSpeed);
         }
+        for(int i = 0; i < obstacles.size();  i++)
+        {
+          if(player.intersects(obstacles.get(i)))
+          {
+          player.moveX(-maxSpeed);
+          }
+        }
       }
       else if(leftPressed)
       {
@@ -123,9 +172,12 @@ public class AnimatedSpriteExample extends JPanel implements KeyListener
         }
          if(background == background1)
         {
-          if(player.intersects(obstacles.get(0)))
+          for(int i = 0; i < obstacles.size();  i++)
           {
+            if(player.intersects(obstacles.get(i)))
+            {
             player.moveX(maxSpeed);
+            }
           }
         }
       }
@@ -137,10 +189,13 @@ public class AnimatedSpriteExample extends JPanel implements KeyListener
         }
         if(background == background1)
         {
-          if(player.intersects(obstacles.get(0)))
+         for(int i = 0; i < obstacles.size();  i++)
+        {
+          if(player.intersects(obstacles.get(i)))
           {
-            player.moveY(maxSpeed);
+          player.moveY(maxSpeed);
           }
+        }
         }
       }
       else if(downPressed)
@@ -149,13 +204,14 @@ public class AnimatedSpriteExample extends JPanel implements KeyListener
         if(player.y > player.bottomBound) {
         player.moveY(-maxSpeed);
         }
-         if(background == background1)
-        {
-          if(player.intersects(obstacles.get(0)))
+         
+          for(int i = 0; i < obstacles.size();  i++)
           {
+            if(player.intersects(obstacles.get(i)))
+            {
             player.moveY(-maxSpeed);
+            }
           }
-        }
       }
 
 /*    else
@@ -169,6 +225,9 @@ public class AnimatedSpriteExample extends JPanel implements KeyListener
 
       // change game state
       player.step();
+      
+      checkConditions();
+     
       
       // wait some time
       curTime = System.currentTimeMillis();
@@ -186,7 +245,7 @@ public class AnimatedSpriteExample extends JPanel implements KeyListener
       // redraw screen
       repaint();
     }
-  }
+  } 
  
   
   public void paintComponent(Graphics g)
@@ -194,15 +253,19 @@ public class AnimatedSpriteExample extends JPanel implements KeyListener
     super.paintComponent(g);
     g.setColor(Color.BLACK);
     g.fillRect(0,0,1800,1800);
+    if(area==1){
+      g.setColor(Floor);
+      g.fillRect(-player.x -550,-player.y -550, 900, 900);
+      }
     g.drawImage(background, -player.x,-player.y, null);
     for(int i = 0; i < obstacles.size();  i++)
     {
      obstacles.get(i).drawTo(g, -player.x + nx, -player.y + ny); //-315,-15
-    }
+    } 
     player.drawTo(g,nx,ny);
     g.setColor(Color.WHITE);
     g.drawString(player.x +", "+ player.y,1030, 20);
-
+    
   }
   
   public void triggerLeftWalk()
@@ -224,6 +287,7 @@ public class AnimatedSpriteExample extends JPanel implements KeyListener
     foot1 = !foot1;
     player.setIdleFrame(0);
   }
+  
   public void triggerRightWalk()
   {
     if(foot1 == true) 
@@ -342,6 +406,23 @@ public class AnimatedSpriteExample extends JPanel implements KeyListener
   }
   public void keyTyped(KeyEvent e)
   {
+  }
+  public void checkConditions()
+  {
+    if(player.intersects(stairs))
+    {   
+      if(area == 0)
+      {
+      transition(1);
+      }
+    }
+    if(player.intersects(stairs2))
+    {
+      if(area == 1)
+      {
+      transition(0);
+      }
+    }
   }
 
 }
