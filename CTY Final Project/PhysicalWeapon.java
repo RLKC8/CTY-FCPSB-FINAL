@@ -1,8 +1,13 @@
 public class PhysicalWeapon extends Weapon{
    String weaponClass;
+   int damage;
+   
    public PhysicalWeapon(){
       super();
       weaponClass="Physical";
-      int damage=0;
+      damage=0;
    }
+   public int getDamage(){
+      return damage;
+    }
 }
