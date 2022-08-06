@@ -6,31 +6,46 @@ public class Player extends Entity{
    int level;
    int xpForNextLevel;
    int storage;
-   ArrayList<Item>inventory=new ArrayList<>();
-   Weapon equippedWeapon;
-   boolean weaponEquipped;
+   PhysicalWeapon equippedPhsyicalWeapon;
+   MagicWeapon equippedMagicalWeapon;
+   boolean physicalWeaponEquipped;
+   boolean magicalWeaponEquipped;
    Armor equippedArmor;
    boolean armorEquipped;
    int gold;
    int x;
    int y;
-   public Player(){
+   EntityAnimation PlayerSprite;
+   
+   public Player(EntityAnimation p){
       super();
+      PlayerSprite = p;
       species="Human";
       x=0;
       y=0;
-      skillPoints=20;
+      skillPoints=10;
       level=1;
       storage=1;
-      weaponEquipped=false;
+      physicalWeaponEquipped=false;
+      magicalWeaponEquipped=false;
       armorEquipped=false;
       gold=0;
       health=20;
-      strength=1;
-      dexterity=1;
-      constitution=1;
-      wisdom=1;
-      magic=1;
+      strength=3;
+      dexterity=3;
+      constitution=3;
+      wisdom=3;
+      magic=3;
       friendly=true;
     }
+    
+    public EntityAnimation getSprite(){
+      return PlayerSprite;
+    }
+    /*public int getPhysicalDamage(){
+      int bob=equippedPhysicalWeapon.getDamage;
+      return bob;
+    }
+    */
+    
 }
